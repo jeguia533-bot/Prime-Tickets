@@ -33,3 +33,5 @@ Permissions:
 - Read Message History
 - Embed Links
 - Attach Files
+
+/boostingpanel - sends Boosting Request panel.

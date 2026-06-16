@@ -136,6 +136,8 @@ async def update_ticket_embed(channel: discord.TextChannel, status: str = None, 
                 await msg.edit(embed=support_ticket_embed(member, ticket_id, new_status, new_staff))
             elif ticket_type == "PARTNERSHIP":
                 await msg.edit(embed=partnership_ticket_embed(member, ticket_id, new_status, new_staff))
+            elif ticket_type == "BOOSTING":
+                await msg.edit(embed=boosting_ticket_embed(member, ticket_id, new_status, new_staff))
             return
 
 
@@ -176,6 +178,24 @@ def support_panel_embed():
             "Open a ticket for questions, order help, or general assistance.\n\n"
             "━━━━━━━━━━━━━━━━━━\n\n"
             "Select an option below to begin."
+        ),
+        color=EMBED_COLOR,
+    )
+    embed.set_footer(text=FOOTER)
+    return embed
+
+
+
+def boosting_panel_embed():
+    embed = discord.Embed(
+        title="⚡ PRIME STOCK BOOSTING REQUESTS ⚡",
+        description=(
+            "━━━━━━━━━━━━━━━━━━\n\n"
+            "Need a custom boosting request?\n\n"
+            "🚀 **Boosting Request**\n"
+            "Open a ticket for custom boosting orders, questions, or special requests.\n\n"
+            "━━━━━━━━━━━━━━━━━━\n\n"
+            "Select the button below to begin."
         ),
         color=EMBED_COLOR,
     )
@@ -257,6 +277,35 @@ def partnership_ticket_embed(user: discord.Member, ticket_id: int, status="🟡 
             "• Any Additional Information\n\n"
             "━━━━━━━━━━━━━━━━━━\n\n"
             "A member of our team will review your request shortly."
+        ),
+        color=EMBED_COLOR,
+    )
+    embed.set_footer(text=FOOTER)
+    return embed
+
+
+
+def boosting_ticket_embed(user: discord.Member, ticket_id: int, status="🟡 Awaiting Staff", staff="Not claimed"):
+    embed = discord.Embed(
+        title="⚡ PRIME STOCK BOOSTING REQUEST ⚡",
+        description=(
+            "━━━━━━━━━━━━━━━━━━\n\n"
+            "🚀 **Welcome to Prime Stock Boosting Requests**\n\n"
+            f"👤 **Customer:** {user.mention}\n"
+            f"🆔 **Ticket ID:** `#{ticket_id:04d}`\n"
+            f"👨‍💼 **Assigned Staff:** {staff}\n\n"
+            "━━━━━━━━━━━━━━━━━━\n\n"
+            "📋 **Request Status**\n\n"
+            f"{status}\n\n"
+            "━━━━━━━━━━━━━━━━━━\n\n"
+            "Please describe what you need in detail.\n\n"
+            "**Include:**\n"
+            "• Game Name\n"
+            "• What service/boost you need\n"
+            "• Current progress/stats if needed\n"
+            "• Any special notes\n\n"
+            "━━━━━━━━━━━━━━━━━━\n\n"
+            "A member of our team will assist you shortly."
         ),
         color=EMBED_COLOR,
     )
@@ -647,11 +696,64 @@ class SupportPanelView(discord.ui.View):
         await self.create_support_ticket(interaction, "SUPPORT", "support")
 
 
+
+class BoostingPanelView(discord.ui.View):
+    def __init__(self):
+        super().__init__(timeout=None)
+
+    async def create_boosting_ticket(self, interaction: discord.Interaction):
+        global ticket_count
+
+        guild = interaction.guild
+        open_category = guild.get_channel(OPEN_TICKETS_CATEGORY_ID)
+        staff_role = guild.get_role(STAFF_ROLE_ID)
+
+        if not open_category:
+            await interaction.response.send_message("Open ticket category not found.", ephemeral=True)
+            return
+
+        if not staff_role:
+            await interaction.response.send_message("Staff role not found.", ephemeral=True)
+            return
+
+        ticket_id = ticket_count
+        ticket_count += 1
+
+        channel_name = f"boosting-{ticket_id:04d}"
+
+        overwrites = {
+            guild.default_role: discord.PermissionOverwrite(view_channel=False),
+            interaction.user: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True),
+            staff_role: discord.PermissionOverwrite(view_channel=True, send_messages=True, read_message_history=True, manage_channels=True, manage_messages=True),
+        }
+
+        channel = await guild.create_text_channel(
+            name=channel_name,
+            category=open_category,
+            overwrites=overwrites,
+            topic=build_topic(interaction.user.id, ticket_id, "BOOSTING", "🟡 Awaiting Staff", "Not claimed"),
+        )
+
+        await channel.send(
+            content=f"{interaction.user.mention} {staff_role.mention}",
+            embed=boosting_ticket_embed(interaction.user, ticket_id),
+            view=SupportTicketView(),
+        )
+
+        await send_log(TICKET_LOG_CHANNEL_ID, "🎫 Boosting Ticket Opened", f"Customer: {interaction.user.mention}\nType: Boosting Request\nTicket: {channel.mention}")
+        await interaction.response.send_message(f"Your boosting request ticket has been created: {channel.mention}", ephemeral=True)
+
+    @discord.ui.button(label="Boosting Request", emoji="🚀", style=discord.ButtonStyle.primary, custom_id="prime_panel_boosting")
+    async def boosting(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.create_boosting_ticket(interaction)
+
+
 # ================= EVENTS / COMMANDS =================
 @bot.event
 async def on_ready():
     bot.add_view(OrderPanelView())
     bot.add_view(SupportPanelView())
+    bot.add_view(BoostingPanelView())
     bot.add_view(OrderTicketView())
     bot.add_view(SupportTicketView())
     bot.add_view(PaymentView())
@@ -686,6 +788,17 @@ async def supportpanel(interaction: discord.Interaction):
 
     await interaction.channel.send(embed=support_panel_embed(), view=SupportPanelView())
     await interaction.response.send_message("Support ticket panel sent.", ephemeral=True)
+
+
+
+@bot.tree.command(name="boostingpanel", description="Send the Prime Stock boosting request panel.", guild=discord.Object(id=GUILD_ID))
+async def boostingpanel(interaction: discord.Interaction):
+    if not interaction.user.guild_permissions.administrator and not is_staff(interaction.user):
+        await interaction.response.send_message("Only staff can use this.", ephemeral=True)
+        return
+
+    await interaction.channel.send(embed=boosting_panel_embed(), view=BoostingPanelView())
+    await interaction.response.send_message("Boosting request panel sent.", ephemeral=True)
 
 
 @bot.tree.command(name="ping", description="Check if Prime Stock is online.", guild=discord.Object(id=GUILD_ID))
