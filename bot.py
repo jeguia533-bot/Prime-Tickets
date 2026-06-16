@@ -141,7 +141,7 @@ class PaymentView(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label="Crypto", emoji="⚡", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Crypto", emoji="⚡", style=discord.ButtonStyle.primary, custom_id="prime_payment_crypto")
     async def crypto(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -163,7 +163,7 @@ class PaymentView(discord.ui.View):
         embed.set_footer(text=FOOTER)
         await interaction.response.send_message(embed=embed)
 
-    @discord.ui.button(label="PayPal", emoji="🅿️", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="PayPal", emoji="🅿️", style=discord.ButtonStyle.primary, custom_id="prime_payment_paypal")
     async def paypal(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -183,7 +183,7 @@ class PaymentView(discord.ui.View):
         embed.set_footer(text=FOOTER)
         await interaction.response.send_message(embed=embed)
 
-    @discord.ui.button(label="Cash App", emoji="💵", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Cash App", emoji="💵", style=discord.ButtonStyle.success, custom_id="prime_payment_cashapp")
     async def cashapp(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -202,7 +202,7 @@ class PaymentView(discord.ui.View):
         embed.set_footer(text=FOOTER)
         await interaction.response.send_message(embed=embed)
 
-    @discord.ui.button(label="Gift Card", emoji="🎁", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="Gift Card", emoji="🎁", style=discord.ButtonStyle.secondary, custom_id="prime_payment_giftcard")
     async def giftcard(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -233,7 +233,7 @@ class ClosedTicketView(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label="Reopen", emoji="🔓", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Reopen", emoji="🔓", style=discord.ButtonStyle.success, custom_id="prime_ticket_reopen")
     async def reopen(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -243,7 +243,7 @@ class ClosedTicketView(discord.ui.View):
         await update_ticket_status(interaction.channel, "🟡 Awaiting Payment")
         await interaction.response.send_message(f"🔓 Ticket reopened by {interaction.user.mention}.")
 
-    @discord.ui.button(label="Delete", emoji="🗑️", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="Delete", emoji="🗑️", style=discord.ButtonStyle.danger, custom_id="prime_ticket_delete")
     async def delete(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -263,7 +263,7 @@ class TicketManageView(discord.ui.View):
             return False
         return True
 
-    @discord.ui.button(label="Payment Info", emoji="💸", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Payment Info", emoji="💸", style=discord.ButtonStyle.primary, custom_id="prime_ticket_payment_info")
     async def payment_info(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -285,7 +285,7 @@ class TicketManageView(discord.ui.View):
         embed.set_footer(text=FOOTER)
         await interaction.response.send_message(embed=embed, view=PaymentView())
 
-    @discord.ui.button(label="Claim", emoji="📌", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="Claim", emoji="📌", style=discord.ButtonStyle.secondary, custom_id="prime_ticket_claim")
     async def claim(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -293,7 +293,7 @@ class TicketManageView(discord.ui.View):
         await update_ticket_status(interaction.channel, staff=interaction.user.mention)
         await interaction.response.send_message(f"📌 Ticket claimed by {interaction.user.mention}.")
 
-    @discord.ui.button(label="Paid", emoji="✅", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Paid", emoji="✅", style=discord.ButtonStyle.success, custom_id="prime_ticket_paid")
     async def paid(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -302,7 +302,7 @@ class TicketManageView(discord.ui.View):
         await interaction.response.send_message("💰 Payment Approved\n\nPayment has been verified by staff.")
         await send_log(PAYMENT_LOG_CHANNEL_ID, "💰 Payment Approved", f"Ticket: {interaction.channel.mention}\nStaff: {interaction.user.mention}")
 
-    @discord.ui.button(label="Processing", emoji="🔨", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Processing", emoji="🔨", style=discord.ButtonStyle.primary, custom_id="prime_ticket_processing")
     async def processing(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -310,7 +310,7 @@ class TicketManageView(discord.ui.View):
         await update_ticket_status(interaction.channel, "🔨 Processing")
         await interaction.response.send_message("⚡ Your order is now being prepared.")
 
-    @discord.ui.button(label="Delivered", emoji="📦", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Delivered", emoji="📦", style=discord.ButtonStyle.success, custom_id="prime_ticket_delivered")
     async def delivered(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -322,7 +322,7 @@ class TicketManageView(discord.ui.View):
             "Thank you for choosing **Prime Stock**."
         )
 
-    @discord.ui.button(label="Request Vouch", emoji="⭐", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="Request Vouch", emoji="⭐", style=discord.ButtonStyle.secondary, custom_id="prime_ticket_vouch")
     async def vouch(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -335,7 +335,7 @@ class TicketManageView(discord.ui.View):
             f"Your feedback helps us grow."
         )
 
-    @discord.ui.button(label="Close", emoji="🔒", style=discord.ButtonStyle.danger)
+    @discord.ui.button(label="Close", emoji="🔒", style=discord.ButtonStyle.danger, custom_id="prime_ticket_close")
     async def close(self, interaction: discord.Interaction, button: discord.ui.Button):
         if not await self.check_staff(interaction):
             return
@@ -413,25 +413,26 @@ class TicketPanelView(discord.ui.View):
         await send_log(TICKET_LOG_CHANNEL_ID, "🎫 Ticket Opened", f"Customer: {interaction.user.mention}\nGame: {game}\nTicket: {channel.mention}")
         await interaction.response.send_message(f"Your ticket has been created: {channel.mention}", ephemeral=True)
 
-    @discord.ui.button(label="Roblox", emoji="🤖", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Roblox", emoji="🤖", style=discord.ButtonStyle.primary, custom_id="prime_panel_roblox")
     async def roblox(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_ticket(interaction, "🤖 Roblox", "roblox")
 
-    @discord.ui.button(label="Forza", emoji="🚗", style=discord.ButtonStyle.primary)
+    @discord.ui.button(label="Forza", emoji="🚗", style=discord.ButtonStyle.primary, custom_id="prime_panel_forza")
     async def forza(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_ticket(interaction, "🚗 Forza", "forza")
 
-    @discord.ui.button(label="Minecraft", emoji="⛏️", style=discord.ButtonStyle.success)
+    @discord.ui.button(label="Minecraft", emoji="⛏️", style=discord.ButtonStyle.success, custom_id="prime_panel_minecraft")
     async def minecraft(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_ticket(interaction, "⛏️ Minecraft", "minecraft")
 
-    @discord.ui.button(label="Rainbow Six Siege", emoji="🌈", style=discord.ButtonStyle.secondary)
+    @discord.ui.button(label="Rainbow Six Siege", emoji="🌈", style=discord.ButtonStyle.secondary, custom_id="prime_panel_r6")
     async def r6(self, interaction: discord.Interaction, button: discord.ui.Button):
         await self.create_ticket(interaction, "🌈 Rainbow Six Siege", "r6")
 
 
 @bot.event
 async def on_ready():
+    print("Prime Stock on_ready started.")
     bot.add_view(TicketPanelView())
     bot.add_view(TicketManageView())
     bot.add_view(PaymentView())
