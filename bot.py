@@ -42,7 +42,25 @@ ticket_count = 1
 
 
 def is_staff(member: discord.Member) -> bool:
-    return any(role.id == STAFF_ROLE_ID for role in member.roles)
+    # Server owner always counts as staff
+    if member.guild.owner_id == member.id:
+        return True
+
+    # Administrators always count as staff
+    if member.guild_permissions.administrator:
+        return True
+
+    staff_role = member.guild.get_role(STAFF_ROLE_ID)
+
+    # Exact staff role counts
+    if any(role.id == STAFF_ROLE_ID for role in member.roles):
+        return True
+
+    # Anyone with a role higher than the staff role also counts
+    if staff_role and member.top_role > staff_role:
+        return True
+
+    return False
 
 
 async def send_log(channel_id: int, title: str, description: str):
